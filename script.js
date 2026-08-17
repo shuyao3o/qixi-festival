@@ -1,10 +1,11 @@
-const BRUSH_SIZE = 40;     
-const BRUSH_SPACING = 15;  
+// 🎨 笔刷变大，更容易填满
+const BRUSH_SIZE = 60;     
+const BRUSH_SPACING = 12;  
 
 document.addEventListener("DOMContentLoaded", () => {
     
     // ==========================================
-    // ☁️ Supabase 数据库初始化 (请在这里填入你的 Keys)
+    // ☁️ Supabase 数据库初始化 
     // ==========================================
     const SUPABASE_URL = 'https://cttkxodilojsmjvqdeia.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_HEcjCbGyFVUqFZ1r_321ng_Zf3gIlya';
@@ -17,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Supabase 连接异常", err);
     }
 
-    // 用于存放从云端拉取下来的真实留言（断网兜底数据）
     let cloudTexts = ["愿女性自由独立", "岁岁常欢愉", "万事胜意", "山高水长", "长乐", "平安喜乐"];
 
     const canvasContainer = document.querySelector('.canvas-container');
@@ -106,6 +106,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (canvasContainer.offsetWidth > 0) { canvas.width = canvasContainer.getBoundingClientRect().width; canvas.height = canvasContainer.getBoundingClientRect().height; }
     });
 
+    // === 胖手指优化：触摸事件视觉偏移 ===
+    function getPos(e) { 
+        const r = canvas.getBoundingClientRect(); 
+        const isTouch = !!e.touches; // 判断是不是手机触摸
+        const clientX = isTouch ? e.touches[0].clientX : (e.clientX || e.pageX);
+        const clientY = isTouch ? e.touches[0].clientY : (e.clientY || e.pageY);
+        
+        // 关键：如果是触摸，就把笔迹往手指上方抬高 35 像素，避免被手指完全挡住！
+        const offsetY = isTouch ? 35 : 0;
+
+        return {
+            x: clientX - r.left, 
+            y: clientY - r.top - offsetY
+        }; 
+    }
+
     canvas.addEventListener('mousedown', e => { if(!isFinished) { isDrawing = true; lastPoint = getPos(e); }});
     canvas.addEventListener('mousemove', e => {
         if(!isDrawing || isFinished) return;
@@ -116,17 +132,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     canvas.addEventListener('mouseup', () => isDrawing = false);
-    canvas.addEventListener('touchstart', e => { if(!isFinished) { isDrawing = true; lastPoint = getPos(e.touches[0]); }});
+    
+    canvas.addEventListener('touchstart', e => { if(!isFinished) { isDrawing = true; lastPoint = getPos(e); }});
     canvas.addEventListener('touchmove', e => {
         if(!isDrawing || isFinished) return;
-        const cur = getPos(e.touches[0]); const dist = Math.hypot(cur.x - lastPoint.x, cur.y - lastPoint.y); const angle = Math.atan2(cur.y - lastPoint.y, cur.x - lastPoint.x);
+        const cur = getPos(e); const dist = Math.hypot(cur.x - lastPoint.x, cur.y - lastPoint.y); const angle = Math.atan2(cur.y - lastPoint.y, cur.x - lastPoint.x);
         if (dist >= BRUSH_SPACING) {
             for (let i = 0; i < dist; i += BRUSH_SPACING) ctx.drawImage(brushImg, lastPoint.x + Math.cos(angle)*i - BRUSH_SIZE/2, lastPoint.y + Math.sin(angle)*i - BRUSH_SIZE/2, BRUSH_SIZE, BRUSH_SIZE);
             lastPoint = cur;
         }
     });
     canvas.addEventListener('touchend', () => isDrawing = false);
-    function getPos(e) { const r = canvas.getBoundingClientRect(); return {x: (e.clientX||e.pageX)-r.left, y: (e.clientY||e.pageY)-r.top}; }
 
     document.getElementById('clearBtn').addEventListener('click', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height); isFinished = false; templateImage.style.opacity = '0.4'; document.getElementById('checkBtn').classList.remove('hidden'); 
@@ -163,7 +179,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('checkBtn').addEventListener('click', () => {
         let count = 0; const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         for (let i = 3; i < data.length; i += 4) { if (data[i] > 20) count++; }
-        if (count > 8000) {
+        
+        // 降低通关门槛：原本需要 8000 像素，现在只要 5000 就能过，降低用户挫败感
+        if (count > 5000) {
             document.getElementById('checkBtn').classList.add('hidden'); document.getElementById('clearBtn').classList.add('hidden'); 
             isFinished = true; templateImage.style.opacity = '0'; startParticleAnimation(); 
         } else alert("还不够完整哦，请再描绘一下他的名字吧~");
@@ -230,16 +248,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     });
 
-    // === 6. Supabase 真实寄语与河流 ===
     document.getElementById('goBlessingBtn').addEventListener('click', () => {
         switchPhase('phase3', 'phase4');
-        fetchCloudBlessings(); // 从 Supabase 抓取数据
+        fetchCloudBlessings(); 
     });
 
     async function fetchCloudBlessings() {
         if(!_supabase) return;
         try {
-            // 查询最新的 50 条祝福
             const { data, error } = await _supabase
                 .from('blessings')
                 .select('content')
@@ -266,10 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => document.getElementById('blessingInputArea').style.display = 'none', 1000);
         document.getElementById('riverBg').style.opacity = '1';
 
-        // 1. 本地生成用户红字
         spawnFlowText(text, true);
 
-        // 2. 存入 Supabase 数据库
         if(_supabase) {
             try {
                 await _supabase.from('blessings').insert([{ content: text }]);
@@ -277,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch(e) { console.log("保存失败", e); }
         }
 
-        // 3. 循环随机播放云端提取到的留言
         setInterval(() => {
             if(cloudTexts.length > 0) {
                 let randomText = cloudTexts[Math.floor(Math.random() * cloudTexts.length)];

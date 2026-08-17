@@ -2,8 +2,20 @@
 @font-face { font-family: 'FangNushu'; src: url('assets/fangnvshu.ttf') format('truetype'); font-weight: normal; font-style: normal; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: "STZhongsong", "SimSun", serif; color: #425066; overflow: hidden; background-color: #ece5df; background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.06"/></svg>'); display: flex; justify-content: center; align-items: center; }
-#app { width: 100vw; height: 100vh; max-width: 450px; position: relative; background-color: #ece5df; overflow: hidden; }
+body { 
+    font-family: "STZhongsong", "SimSun", serif; color: #425066; overflow: hidden; 
+    background-color: #ece5df; 
+    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.06"/></svg>'); 
+    display: flex; justify-content: center; align-items: center; 
+}
+
+/* 📱 修复手机端上下被裁切的核心：使用 100dvh (动态视口高度) 代替 100vh */
+#app { 
+    width: 100vw; 
+    height: 100vh; /* 兜底 */
+    height: 100dvh; /* 动态高度，防止手机浏览器导航栏遮挡 */
+    max-width: 450px; position: relative; background-color: #ece5df; overflow: hidden; 
+}
 @media (min-width: 500px) { #app { box-shadow: 0 0 30px rgba(0,0,0,0.15); } }
 
 .screen { width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease-in-out; }
@@ -18,23 +30,21 @@ body { font-family: "STZhongsong", "SimSun", serif; color: #425066; overflow: hi
 .floating-bottom-btn { position: absolute; bottom: 8%; z-index: 999; animation: pulse 2s infinite; } 
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-.floating-title { position: absolute; top: 3%; z-index: 20; width: 95%; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: none; }
+.floating-title { position: absolute; top: 5%; z-index: 20; width: 95%; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: none; }
 .char-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
 .char-group .ns { font-family: 'MyNushu', serif; font-size: 24px; color: #9d2933; height: 35px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; } 
 .char-group .zh { font-size: 14px; color: #425066; } 
 .char-group.punct { justify-content: flex-end; } 
 
-/* 🎨 终极强制仿女书样式 */
-.fang-nushu, div.fang-nushu, span.fang-nushu, .nushu-text span.fang-nushu { 
-    font-family: 'FangNushu', 'MyNushu', "SimSun", serif !important; 
-    font-size: 30px !important; 
-    transform: translateY(2px); 
-}
+.fang-nushu, div.fang-nushu, span.fang-nushu, .nushu-text span.fang-nushu { font-family: 'FangNushu', 'MyNushu', "SimSun", serif !important; font-size: 30px !important; transform: translateY(2px); }
 
-.canvas-container { position: absolute; top: 10%; height: 75%; width: 100%; overflow: hidden; }
+/* 恢复了正常的画板大小，不再强行放大挤占空间 */
+.canvas-container { position: absolute; top: 18%; height: 65%; width: 100%; overflow: hidden; }
 #templateImage, #drawingBoard { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 #templateImage { opacity: 0.4; transition: opacity 1.5s ease; }
 #drawingBoard { cursor: crosshair; z-index: 5; }
+
+/* 恢复了底部按钮的正常安全位置 */
 .floating-btn-group.horizontal { position: absolute; bottom: 3%; z-index: 20; display: flex; flex-direction: row; gap: 20px; align-items: center; }
 
 .input-container { text-align: center; width: 90%; display: flex; flex-direction: column; align-items: center; z-index: 10; transition: opacity 1s; }
@@ -58,27 +68,13 @@ body { font-family: "STZhongsong", "SimSun", serif; color: #425066; overflow: hi
 .blessing-preview { margin-top: 15px; writing-mode: vertical-rl; text-orientation: upright; display: flex; align-items: center; justify-content: center; height: 200px; color: #9d2933; font-family: 'MyNushu', serif; font-size: 26px; letter-spacing: 6px; }
 .blessing-preview span { display: inline-block; margin-bottom: 6px; }
 
-/* === 向上流淌动画与宋体切换 === */
 #waterFlowContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
 .flowing-item { position: absolute; writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; letter-spacing: 8px; font-family: 'MyNushu', serif; cursor: pointer; pointer-events: auto; transition: opacity 0.3s, color 0.3s; }
 .flowing-item span { display: inline-block; margin-bottom: 6px; }
-
-/* 切换到汉字时的专用类 */
 .flowing-zh { font-family: "STZhongsong", "SimSun", serif !important; color: #425066 !important; font-weight: normal; }
 
 .flow-other { color: #99b3a8; animation: flowUp 25s linear forwards; }
 .flow-user { color: #9d2933; font-weight: bold; animation: flowMergeUp 22s ease-in-out forwards; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
 
-/* 改为向上漂浮 */
-@keyframes flowUp { 
-    0% { transform: translateY(110vh); opacity: 0; } 
-    10% { opacity: 0.7; } 
-    80% { opacity: 0.7; } 
-    100% { transform: translateY(-20%); opacity: 0; } 
-}
-@keyframes flowMergeUp { 
-    0% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 0; } 
-    10% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 1; } 
-    20% { top: 60%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 1; } 
-    100% { top: -20%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 0; } 
-}
+@keyframes flowUp { 0% { transform: translateY(110vh); opacity: 0; } 10% { opacity: 0.7; } 80% { opacity: 0.7; } 100% { transform: translateY(-20%); opacity: 0; } }
+@keyframes flowMergeUp { 0% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 0; } 10% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 1; } 20% { top: 60%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 1; } 100% { top: -20%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 0; } }
