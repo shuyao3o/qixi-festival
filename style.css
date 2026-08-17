@@ -1,0 +1,84 @@
+@font-face { font-family: 'MyNushu'; src: url('assets/nvshu.woff2') format('woff2'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'FangNushu'; src: url('assets/fangnvshu.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "STZhongsong", "SimSun", serif; color: #425066; overflow: hidden; background-color: #ece5df; background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.06"/></svg>'); display: flex; justify-content: center; align-items: center; }
+#app { width: 100vw; height: 100vh; max-width: 450px; position: relative; background-color: #ece5df; overflow: hidden; }
+@media (min-width: 500px) { #app { box-shadow: 0 0 30px rgba(0,0,0,0.15); } }
+
+.screen { width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease-in-out; }
+.screen.active { opacity: 1; z-index: 10; } 
+.screen.hidden { display: none !important; opacity: 0; pointer-events: none; }
+
+.btn { background-color: transparent; background-image: url('assets/button-bg.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #ece5df; text-shadow: 0 2px 4px rgba(0,0,0,0.4); border: none; width: 120px; height: 85px; font-size: 16px; font-weight: bold; letter-spacing: 2px; margin-top: 20px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
+.btn:hover { transform: scale(1.05); }
+
+.intro-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+.fade-bg { transition: opacity 2s ease-in-out; }
+.floating-bottom-btn { position: absolute; bottom: 8%; z-index: 999; animation: pulse 2s infinite; } 
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+.floating-title { position: absolute; top: 3%; z-index: 20; width: 95%; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: none; }
+.char-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.char-group .ns { font-family: 'MyNushu', serif; font-size: 24px; color: #9d2933; height: 35px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; } 
+.char-group .zh { font-size: 14px; color: #425066; } 
+.char-group.punct { justify-content: flex-end; } 
+
+/* 🎨 终极强制仿女书样式 */
+.fang-nushu, div.fang-nushu, span.fang-nushu, .nushu-text span.fang-nushu { 
+    font-family: 'FangNushu', 'MyNushu', "SimSun", serif !important; 
+    font-size: 30px !important; 
+    transform: translateY(2px); 
+}
+
+.canvas-container { position: absolute; top: 10%; height: 75%; width: 100%; overflow: hidden; }
+#templateImage, #drawingBoard { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+#templateImage { opacity: 0.4; transition: opacity 1.5s ease; }
+#drawingBoard { cursor: crosshair; z-index: 5; }
+.floating-btn-group.horizontal { position: absolute; bottom: 3%; z-index: 20; display: flex; flex-direction: row; gap: 20px; align-items: center; }
+
+.input-container { text-align: center; width: 90%; display: flex; flex-direction: column; align-items: center; z-index: 10; transition: opacity 1s; }
+.input-container p { margin-bottom: 15px; font-size: 18px; letter-spacing: 2px; }
+#nameInput, #blessingInput { width: 80%; padding: 15px; border: 1px solid #425066; background: transparent; color: #425066; font-size: 18px; text-align: center; letter-spacing: 4px; outline: none; }
+.mapping-area { margin-top: 15px; width: 100%; }
+.map-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.4); padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+.map-char { font-size: 20px; font-weight: bold; width: 30px; }
+.map-ns { font-family: 'MyNushu', serif; font-size: 26px; color: #9d2933; width: 40px; }
+.map-action { flex: 1; text-align: right; }
+.replace-btn { background: #425066; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+.keep-btn { background: transparent; border: 1px solid #9d2933; color: #9d2933; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 5px;}
+
+.poster-main-design { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity 0.5s; }
+.poster-content.double-column { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: row-reverse; justify-content: space-around; align-items: flex-start; padding: 0 40px; padding-top: 180px; }
+.column { display: flex; gap: 15px; pointer-events: none; }
+.nushu-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; line-height: 1.8; letter-spacing: 4px; color: #9d2933; font-family: 'MyNushu', serif; } 
+.chinese-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 22px; line-height: 1.8; letter-spacing: 4px; color: #425066; border-right: 1px solid #425066; padding-right: 15px; }
+.nushu-text span { display: inline-block; margin-bottom: 8px; }
+
+.blessing-preview { margin-top: 15px; writing-mode: vertical-rl; text-orientation: upright; display: flex; align-items: center; justify-content: center; height: 200px; color: #9d2933; font-family: 'MyNushu', serif; font-size: 26px; letter-spacing: 6px; }
+.blessing-preview span { display: inline-block; margin-bottom: 6px; }
+
+/* === 向上流淌动画与宋体切换 === */
+#waterFlowContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
+.flowing-item { position: absolute; writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; letter-spacing: 8px; font-family: 'MyNushu', serif; cursor: pointer; pointer-events: auto; transition: opacity 0.3s, color 0.3s; }
+.flowing-item span { display: inline-block; margin-bottom: 6px; }
+
+/* 切换到汉字时的专用类 */
+.flowing-zh { font-family: "STZhongsong", "SimSun", serif !important; color: #425066 !important; font-weight: normal; }
+
+.flow-other { color: #99b3a8; animation: flowUp 25s linear forwards; }
+.flow-user { color: #9d2933; font-weight: bold; animation: flowMergeUp 22s ease-in-out forwards; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+/* 改为向上漂浮 */
+@keyframes flowUp { 
+    0% { transform: translateY(110vh); opacity: 0; } 
+    10% { opacity: 0.7; } 
+    80% { opacity: 0.7; } 
+    100% { transform: translateY(-20%); opacity: 0; } 
+}
+@keyframes flowMergeUp { 
+    0% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 0; } 
+    10% { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 1; } 
+    20% { top: 60%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 1; } 
+    100% { top: -20%; left: 50%; transform: translate(-50%, 0) scale(1); opacity: 0; } 
+}

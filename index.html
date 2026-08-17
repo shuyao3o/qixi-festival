@@ -3,258 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>乞巧·秦彻专属羁绊</title>
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #111; color: #fff; overflow: hidden; font-family: 'PingFang SC', sans-serif; }
-        #game-container { position: relative; width: 100%; height: 100%; }
-        canvas { display: block; width: 100%; height: 100%; background: radial-gradient(circle at bottom, #2a0808, #000); }
-        
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 10; transition: opacity 0.5s; }
-        .hidden { display: none !important; }
-        
-        h1 { color: #d32f2f; text-shadow: 0 0 10px #ff0000; letter-spacing: 2px; }
-        p { text-align: center; line-height: 1.6; margin: 20px; color: #ccc; }
-        button { background: #8b0000; color: white; border: 1px solid #ff4c4c; padding: 12px 30px; font-size: 18px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); letter-spacing: 2px; }
-        button:active { background: #5a0000; }
-        
-        #score-display { position: absolute; top: 20px; left: 20px; font-size: 24px; color: #ff4c4c; z-index: 5; text-shadow: 0 0 5px red; font-weight: bold; }
-        
-        /* 模拟秦彻爆发特效 */
-        #evol-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 0, 0, 0.3); box-shadow: inset 0 0 100px red; pointer-events: none; z-index: 8; opacity: 0; transition: opacity 0.2s; }
-    </style>
+    <title>七夕·秦彻·女书</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- 引入 html2canvas (用于生成海报截图) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- 引入 Supabase 数据库 SDK (用于长河留言功能) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <div id="app">
+        <!-- 阶段零：开屏介绍 -->
+        <section id="phase0" class="screen active">
+            <img src="assets/intro.png" class="intro-bg" alt="七夕乞巧">
+            <button id="enterBtn" class="btn floating-bottom-btn">指尖描红</button>
+        </section>
 
-<div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-    <div id="score-display">穿针数: <span id="score">0</span></div>
-    <div id="evol-effect"></div>
-
-    <div id="start-screen" class="ui-layer">
-        <h1>月下乞巧</h1>
-        <p>左右倾斜手机（或按键盘左右键）<br>引导红线穿过针孔。<br>看看你能织就怎样的羁绊？</p>
-        <button id="start-btn">开始牵线</button>
-    </div>
-
-    <div id="result-screen" class="ui-layer hidden">
-        <h1 id="result-title">挑战结束</h1>
-        <p id="result-score">你成功穿过了 0 道针孔</p>
-        <p id="result-desc" style="color: #ff9999; font-style: italic; white-space: pre-line;">分析结果中...</p>
-        <br>
-        <button onclick="location.reload()">再次挑战</button>
-    </div>
-</div>
-
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const startScreen = document.getElementById('start-screen');
-    const resultScreen = document.getElementById('result-screen');
-    const startBtn = document.getElementById('start-btn');
-    const scoreEl = document.getElementById('score');
-    const evolEffect = document.getElementById('evol-effect');
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let gameLoopId;
-    let isGameOver = false;
-    let score = 0;
-
-    // ==========================================
-    // ⚙️ [可调参数区] 游戏难度与UI设定
-    // ==========================================
-    
-    // 1. 速度与间距设定
-    const initialSpeed = 1.0;          // [可调参数] 初始下落速度，数值越小越慢（原为2）
-    const speedIncrement = 0.1;        // [可调参数] 每穿过一根针，速度增加多少
-    const maxSpeed = 5.0;              // [可调参数] 最高限速，防止后期太快
-    const needleDistance = 350;        // [可调参数] 针与针之间的垂直距离(像素)，数值越大，两根针离得越远
-    const gapWidth = 120;              // [可调参数] 针孔的宽度，数值越大越容易穿过
-
-    // 2. 五色丝线UI设定
-    const threadColors = ['#00FFFF', '#FF3333', '#FFFF33', '#FFFFFF', '#666666']; // [可调参数] 五色(青,赤,黄,白,黑/深灰)
-    const orbitRadius = 4;             // [可调参数] 五个小点旋转的整体半径大小（保持与原来单点大小近似）
-    const dotRadius = 1.5;             // [可调参数] 每个单色小点的大小
-    const rotateSpeed = 0.15;          // [可调参数] 丝线的螺旋旋转速度，数值越大转得越快
-    const tailLength = 0.15;           // [可调参数] 拖尾长度，即背景刷新透明度。范围0.01~1，越小拖尾越长
-
-    // 3. 玩家控制设定
-    const playerControlSpeed = 5;      // [可调参数] 玩家左右移动的基础灵敏度
-
-    // ==========================================
-
-    let currentNeedleSpeed = initialSpeed; 
-    let spawnTimer = 0;
-    let threadAngle = 0; // 记录当前丝线的旋转角度
-
-    // 玩家(中心点)属性
-    const player = {
-        x: canvas.width / 2,
-        y: canvas.height - 150, 
-        radius: orbitRadius, // 用于碰撞检测的实际半径
-        vx: 0
-    };
-
-    let needles = [];
-
-    function handleOrientation(event) {
-        let gamma = event.gamma; 
-        if (gamma > 45) gamma = 45;
-        if (gamma < -45) gamma = -45;
-        player.vx = (gamma / 45) * playerControlSpeed;
-    }
-
-    const keys = {};
-    window.addEventListener('keydown', e => keys[e.code] = true);
-    window.addEventListener('keyup', e => keys[e.code] = false);
-
-    startBtn.addEventListener('click', () => {
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                    }
-                    startGame();
-                })
-                .catch(console.error);
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation);
-            startGame();
-        }
-    });
-
-    function startGame() {
-        startScreen.classList.add('hidden');
-        isGameOver = false;
-        score = 0;
-        needles = [];
-        player.x = canvas.width / 2;
-        currentNeedleSpeed = initialSpeed; // 重置初始速度
-        spawnTimer = 0;
-        threadAngle = 0;
-        scoreEl.innerText = score;
-        update();
-    }
-
-    function createNeedle() {
-        const gapCenter = Math.random() * (canvas.width - gapWidth - 40) + (gapWidth / 2 + 20);
-        needles.push({
-            y: -20, 
-            gapCenter: gapCenter,
-            passed: false
-        });
-    }
-
-    function triggerQinCheEvol() {
-        evolEffect.style.opacity = 1;
-        setTimeout(() => evolEffect.style.opacity = 0, 500);
-        
-        setTimeout(() => {
-            alert("【秦彻】：“规矩是死物，而你，只管往前走。”\n(秦彻的Evol强行震碎了前方的针！)");
-            score += 20; 
-            scoreEl.innerText = score;
-            needles = []; 
-        }, 50);
-    }
-
-    function update() {
-        if (isGameOver) return;
-
-        // 控制逻辑
-        if (keys['ArrowLeft']) player.x -= playerControlSpeed;
-        if (keys['ArrowRight']) player.x += playerControlSpeed;
-        player.x += player.vx;
-
-        if (player.x < 0) player.x = 0;
-        if (player.x > canvas.width) player.x = canvas.width;
-
-        // 根据设定的距离和当前速度，动态计算生成间隔(帧数)
-        let currentSpawnInterval = Math.floor(needleDistance / currentNeedleSpeed);
-        spawnTimer++;
-        if (spawnTimer >= currentSpawnInterval) {
-            createNeedle();
-            spawnTimer = 0;
-        }
-
-        // 绘制背景残影（形成拖尾）
-        ctx.fillStyle = `rgba(17, 17, 17, ${tailLength})`; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // 绘制针与移动
-        ctx.fillStyle = '#666'; 
-        for (let i = 0; i < needles.length; i++) {
-            let n = needles[i];
-            n.y += currentNeedleSpeed;
-
-            ctx.fillRect(0, n.y, n.gapCenter - gapWidth / 2, 10);
-            ctx.fillRect(n.gapCenter + gapWidth / 2, n.y, canvas.width - (n.gapCenter + gapWidth / 2), 10);
-
-            // 碰撞检测
-            if (player.y - player.radius < n.y + 10 && player.y + player.radius > n.y) {
-                if (player.x - player.radius < n.gapCenter - gapWidth / 2 || player.x + player.radius > n.gapCenter + gapWidth / 2) {
-                    if (Math.random() < 0.1) {
-                        triggerQinCheEvol();
-                    } else {
-                        endGame();
-                        return; 
-                    }
-                }
-            }
-
-            // 计分与加速
-            if (n.y > player.y && !n.passed) {
-                n.passed = true;
-                score++;
-                scoreEl.innerText = score;
-                currentNeedleSpeed = Math.min(maxSpeed, initialSpeed + score * speedIncrement);
-            }
-        }
-
-        needles = needles.filter(n => n.y < canvas.height);
-
-        // ==========================================
-        // 绘制五色丝线（螺旋点阵）
-        // ==========================================
-        threadAngle += rotateSpeed; // 增加旋转角度
-        
-        for (let i = 0; i < 5; i++) {
-            // 将360度平分为5份，计算每个点当前的角度
-            let currentDotAngle = threadAngle + (i * Math.PI * 2 / 5);
-            // 计算每个点的位置
-            let px = player.x + Math.cos(currentDotAngle) * orbitRadius;
-            let py = player.y + Math.sin(currentDotAngle) * orbitRadius;
+        <!-- 阶段一：描红与展示 -->
+        <section id="phase1" class="screen hidden" style="opacity: 0;">
+            <div class="floating-title" id="hintContainer"></div>
             
-            ctx.beginPath();
-            ctx.arc(px, py, dotRadius, 0, Math.PI * 2);
-            ctx.fillStyle = threadColors[i];
-            // 加上微弱的发光效果
-            ctx.shadowColor = threadColors[i];
-            ctx.shadowBlur = 5;
-            ctx.fill();
-            ctx.shadowBlur = 0; // 重置阴影
-        }
-        // ==========================================
+            <div class="canvas-container">
+                <img id="templateImage" src="assets/template.png" alt="描红底图">
+                <canvas id="drawingBoard"></canvas>
+            </div>
 
-        gameLoopId = requestAnimationFrame(update);
-    }
+            <!-- 重描与完成按钮 -->
+            <div class="floating-btn-group horizontal">
+                <button id="clearBtn" class="btn">重描</button>
+                <button id="checkBtn" class="btn">描红完成</button>
+            </div>
+        </section>
 
-    function endGame() {
-        isGameOver = true;
-        resultScreen.classList.remove('hidden');
-        document.getElementById('result-score').innerText = `你成功穿过了 ${score} 道针孔`;
-        
-        let desc = "";
-        if (score < 5) {
-            desc = "织就【回纹】\n获得称号：N109区迷路织女\n女书密语：“慢慢来，我不催你。”";
-        } else if (score < 15) {
-            desc = "织就【缠枝牡丹纹】\n获得称号：暗影绣娘\n女书密语：“有点意思，继续保持。”";
-        } else {
-            desc = "织就顶级【海水江崖暗纹】\n获得称号：首领的专属制衣师\n女书密语：“你织的网，我甘愿陷入。”";
-        }
-        document.getElementById('result-desc').innerText = desc;
-    }
-</script>
+        <!-- 阶段二：署名与同音字选择 -->
+        <section id="phase2" class="screen hidden" style="opacity: 0;">
+            <div class="input-container">
+                <p>请输入你的名字</p>
+                <input type="text" id="nameInput" placeholder="输入姓名，最多4个字" maxlength="4">
+                
+                <button id="convertBtn" class="btn" style="margin-top: 15px;">转换女书</button>
+                
+                <div id="mappingArea" class="mapping-area"></div>
+                
+                <button id="generateBtn" class="btn hidden">落笔</button>
+            </div>
+        </section>
+
+        <!-- 阶段三：结缘全屏展示与拆解 -->
+        <section id="phase3" class="screen hidden" style="opacity: 0;">
+            <img src="assets/cp-bg.png" class="poster-main-design" id="posterBg">
+            
+            <div class="poster-content double-column">
+                <!-- 右列：秦彻 -->
+                <div class="column qinche-column">
+                    <div class="nushu-text" id="qincheNushu"></div>
+                    <div class="chinese-text">秦彻</div>
+                </div>
+                <!-- 左列：玩家 -->
+                <div class="column user-column">
+                    <div class="nushu-text" id="nushuOutput"></div>
+                    <div class="chinese-text" id="chineseOutput"></div>
+                </div>
+            </div>
+
+            <div class="floating-btn-group horizontal" style="bottom: 8%;">
+                <button id="deconstructBtn" class="btn">拆解</button>
+                <button id="goBlessingBtn" class="btn hidden">寄语</button>
+            </div>
+        </section>
+
+        <!-- 阶段四：流淌的女书祝福 (数据库部分) -->
+        <section id="phase4" class="screen hidden" style="opacity: 0;">
+            <!-- 河流背景 (初始隐藏) -->
+            <img src="assets/river.png" class="intro-bg fade-bg" id="riverBg" style="opacity: 0;">
+            
+            <!-- 寄语输入区 -->
+            <div id="blessingInputArea" class="input-container" style="z-index: 20;">
+                <p>为女性留下女书祝福</p>
+                <input type="text" id="blessingInput" placeholder="最多10个字..." maxlength="10">
+                <!-- 实时预览区 -->
+                <div id="blessingPreview" class="blessing-preview"></div>
+                <button id="sendBlessingBtn" class="btn" style="margin-top: 15px;">寄出</button>
+            </div>
+            
+            <!-- 流淌文字的容器 -->
+            <div id="waterFlowContainer"></div>
+        </section>
+    </div>
+
+    <!-- 你的核心逻辑脚本 -->
+    <script src="script.js"></script>
 </body>
 </html>
