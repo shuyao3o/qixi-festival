@@ -30,9 +30,8 @@
         <!-- 阶段二：署名与同音字选择 -->
         <section id="phase2" class="screen hidden" style="opacity: 0;">
             <div class="input-container">
-                <!-- ① placeholder 改为"五字以内" -->
                 <p>请输入你的名字</p>
-                <input type="text" id="nameInput" placeholder="五字以内" maxlength="5">
+                <input type="text" id="nameInput" placeholder="输入姓名，最多4个字" maxlength="4">
                 <button id="convertBtn" class="btn" style="margin-top: 15px;">转换女书</button>
                 <div id="mappingArea" class="mapping-area"></div>
                 <button id="generateBtn" class="btn hidden">落笔</button>
@@ -58,29 +57,23 @@
             </div>
         </section>
 
-        <!-- ④ 阶段四：寄语长河，标题仿描红页竖排双列，无文本框标题 -->
+        <!-- 阶段四：流淌的女书祝福 (重构) -->
         <section id="phase4" class="screen hidden" style="opacity: 0;">
-            <img src="assets/river.png" class="intro-bg fade-bg" id="riverBg" style="opacity: 0;">
-
-            <!-- ④ "以女书寄女性"竖排双列标题，仿描红页 -->
-            <div class="blessing-title-area" id="blessingTitleArea">
-                <div class="blessing-title-nushu" id="blessingTitleNushu"></div>
-                <div class="blessing-title-zh">以女书寄女性</div>
-            </div>
-
-            <!-- 输入框 + 预览 -->
-            <div id="blessingInputArea" class="blessing-input-area">
-                <input type="text" id="blessingInput" placeholder="留下你的祝福，最多10字" maxlength="10">
-                <div class="blessing-bilingual">
-                    <div class="blessing-nushu-col" id="blessingNushuCol"></div>
-                    <div class="blessing-zh-col"   id="blessingZhCol"></div>
-                </div>
+            <!-- 背景常亮 -->
+            <img src="assets/river.png" class="intro-bg" id="riverBg">
+            
+            <!-- 上方汉字+女书标题 -->
+            <div class="floating-title" id="blessingHintContainer" style="top: 4%; z-index: 20;"></div>
+            
+            <!-- 寄语输入区 -->
+            <div id="blessingInputArea" class="input-container blessing-layout">
+                <input type="text" id="blessingInput" placeholder="最多十个字..." maxlength="10">
                 <div id="blessingPreview" class="blessing-preview"></div>
             </div>
-
-            <!-- ④ 寄出按钮居中，bottom:8% -->
-            <button id="sendBlessingBtn" class="btn">寄出</button>
-
+            
+            <!-- 发送按钮移动到底部 -->
+            <button id="sendBlessingBtn" class="btn floating-bottom-btn" style="z-index: 30;">寄出</button>
+            
             <div id="waterFlowContainer"></div>
         </section>
     </div>
