@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // ☁️ Supabase 数据库初始化 (请重新填入)
     // ==========================================
-    const SUPABASE_URL = '把这里换成你的_Project_URL';
-    const SUPABASE_ANON_KEY = '把这里换成你的_anon_public_Key';
+    const SUPABASE_URL = 'https://cttkxodilojsmjvqdeia.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_HEcjCbGyFVUqFZ1r_321ng_Zf3gIlya';
     
     let _supabase = null;
     try { _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (err) { console.log(err); }
