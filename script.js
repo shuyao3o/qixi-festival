@@ -4,7 +4,7 @@ const BRUSH_SPACING = 12;
 document.addEventListener("DOMContentLoaded", () => {
     
     // ==========================================
-    // ☁️ Supabase 数据库初始化 (请重新填入你的 Keys!)
+    // ☁️ Supabase 数据库初始化
     // ==========================================
     const SUPABASE_URL = 'https://cttkxodilojsmjvqdeia.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_HEcjCbGyFVUqFZ1r_321ng_Zf3gIlya';
@@ -14,16 +14,17 @@ document.addEventListener("DOMContentLoaded", () => {
         _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (err) { console.log(err); }
 
-    let cloudTexts = ["愿姐妹自由独立", "岁岁常欢愉", "万事胜意", "山高水长", "长乐未央", "平安喜乐"];
+    let cloudTexts = ["愿姐妹自由独立", "岁岁常欢愉", "万事胜意", "山高水长", "长乐未央", "平安喜乐",
+                      "愿你被温柔以待", "岁月静好", "繁花似锦", "心想事成", "春风得意", "花好月圆",
+                      "步步生莲", "吉祥如意", "百福具臻", "岁岁平安", "前程似锦", "喜乐安康",
+                      "笑口常开", "福寿绵长"];
 
     const canvasContainer = document.querySelector('.canvas-container');
     const canvas = document.getElementById('drawingBoard');
     const ctx = canvas.getContext('2d');
     const templateImage = document.getElementById('templateImage');
     
-    // === 新增：分步描红状态 ===
-    let tracingStep = 1; // 1代表描“秦”，2代表描“彻”
-    
+    let tracingStep = 1;
     let isFinished = false; 
     let isDrawing = false;
     let lastPoint = null; 
@@ -147,14 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data[(y * canvas.width + x) * 4 + 3] > 50) particles.push({ x: x, y: y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 1+Math.random()*0.5, history: [], colorRGB: COLORS[Math.floor(Math.random()*COLORS.length)] });
             }
         }
-        
         function renderParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); let alive = false;
             particles.forEach(p => {
                 if (p.life > 0) {
                     alive = true; p.history.push({x: p.x, y: p.y});
                     if(p.history.length > 12) p.history.shift(); 
-                    p.x += p.vx; p.y += p.vy; p.life -= 0.015; // 加快一点消散
+                    p.x += p.vx; p.y += p.vy; p.life -= 0.015;
                     if (p.history.length > 1) {
                         ctx.beginPath(); ctx.moveTo(p.history[0].x, p.history[0].y);
                         for(let i=1; i<p.history.length; i++) ctx.lineTo(p.history[i].x, p.history[i].y);
@@ -168,31 +168,27 @@ document.addEventListener("DOMContentLoaded", () => {
         renderParticles();
     }
 
-    // === 核心修改：两步描红逻辑 ===
     document.getElementById('checkBtn').addEventListener('click', () => {
         let count = 0; const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         for (let i = 3; i < data.length; i += 4) { if (data[i] > 20) count++; }
         
-        if (count > 4000) { // 稍微降低一点阈值防卡关
+        if (count > 4000) {
             isFinished = true; 
-            document.getElementById('tracingBtnGroup').classList.add('hidden'); // 隐藏按钮组
-            templateImage.style.opacity = '0'; // 隐藏底图
+            document.getElementById('tracingBtnGroup').classList.add('hidden');
+            templateImage.style.opacity = '0';
             
             if (tracingStep === 1) {
-                // 第一步完成：播放特效，然后切换到第二步
                 startParticleAnimation(() => {
-                    // 特效播完后
-                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 确保清空
-                    templateImage.src = 'assets/template2.png'; // 切换成“彻”的底图
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    templateImage.src = 'assets/template2.png';
                     setTimeout(() => {
                         templateImage.style.opacity = '0.4'; 
                         document.getElementById('tracingBtnGroup').classList.remove('hidden'); 
-                        isFinished = false; // 解锁画板
-                        tracingStep = 2; // 进入第二步
+                        isFinished = false;
+                        tracingStep = 2;
                     }, 300);
                 });
             } else {
-                // 第二步完成：播放特效，进入下一页
                 startParticleAnimation(() => {
                     switchPhase('phase1', 'phase2');
                 });
@@ -263,63 +259,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     });
 
-    document.getElementById('goBlessingBtn').addEventListener('click', () => {
-        switchPhase('phase3', 'phase4');
-        fetchCloudBlessings(); 
-    });
-
-    async function fetchCloudBlessings() {
-        if(!_supabase) return;
-        try {
-            const { data, error } = await _supabase
-                .from('blessings')
-                .select('content')
-                .order('created_at', { ascending: false })
-                .limit(50);
-            if (data && data.length > 0) cloudTexts = data.map(item => item.content);
-        } catch(err) { console.log(err); }
-    }
-
+    // ② 寄语预览：双列汉字+女书
     const blessInput = document.getElementById('blessingInput');
-    const blessPreview = document.getElementById('blessingPreview');
-    blessInput.addEventListener('input', () => { blessPreview.innerHTML = buildNushuHtml(blessInput.value.trim()); });
-
-    document.getElementById('sendBlessingBtn').addEventListener('click', async () => {
+    blessInput.addEventListener('input', () => {
         const text = blessInput.value.trim();
-        if(!text) return alert("请先留下祝福哦");
-
-        document.getElementById('blessingInputArea').style.opacity = '0';
-        setTimeout(() => document.getElementById('blessingInputArea').style.display = 'none', 1000);
-        document.getElementById('riverBg').style.opacity = '1';
-
-        spawnFlowText(text, true);
-
-        if(_supabase) {
-            try {
-                await _supabase.from('blessings').insert([{ content: text }]);
-            } catch(e) { console.log(e); }
-        }
-
-        setInterval(() => {
-            if(cloudTexts.length > 0) {
-                let randomText = cloudTexts[Math.floor(Math.random() * cloudTexts.length)];
-                spawnFlowText(randomText, false);
-            }
-        }, 2500);
-    });
-
-    function spawnFlowText(text, isUser) {
-        const flowEl = document.createElement('div');
-        flowEl.className = `flowing-item ${isUser ? 'flow-user' : 'flow-other'}`;
-        flowEl.innerHTML = buildNushuHtml(text);
-        if (!isUser) flowEl.style.left = (15 + Math.random() * 70) + '%';
-        let isZh = false;
-        flowEl.addEventListener('click', () => {
-            isZh = !isZh;
-            if(isZh) { flowEl.classList.add('flowing-zh'); flowEl.innerHTML = buildChineseHtml(text); } 
-            else { flowEl.classList.remove('flowing-zh'); flowEl.innerHTML = buildNushuHtml(text); }
-        });
-        document.getElementById('waterFlowContainer').appendChild(flowEl);
-        setTimeout(() => flowEl.remove(), 26000);
-    }
-});
+        document.getElementById('blessingNushuPreview').innerHTML = buildNushuHtml(text);
+        document.getElementById('blessingZhPreview').innerHTML = buildChineseHtml(text);
+   

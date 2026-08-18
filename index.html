@@ -18,7 +18,6 @@
         <section id="phase1" class="screen hidden" style="opacity: 0;">
             <div class="floating-title" id="hintContainer"></div>
             <div class="canvas-container">
-                <!-- 初始底图改为 template1.png -->
                 <img id="templateImage" src="assets/template1.png" alt="描红底图">
                 <canvas id="drawingBoard"></canvas>
             </div>
@@ -54,29 +53,38 @@
                 </div>
             </div>
 
-            <!-- 海报页的按钮组 -->
             <div class="floating-btn-group horizontal poster-btns">
                 <button id="deconstructBtn" class="btn">拆解</button>
                 <button id="goBlessingBtn" class="btn hidden">寄语</button>
             </div>
         </section>
 
-        <!-- 阶段四：流淌的女书祝福 -->
+        <!-- ② 阶段四：流淌的女书祝福（汉字+女书双排寄语） -->
         <section id="phase4" class="screen hidden" style="opacity: 0;">
             <img src="assets/river.png" class="intro-bg fade-bg" id="riverBg" style="opacity: 0;">
             
+            <!-- ② 寄语输入区：标题改为"以女书寄女性"，双列竖排预览 -->
             <div id="blessingInputArea" class="input-container blessing-layout">
-                <p>为女性留下女书祝福</p>
+                <p>以女书寄女性</p>
                 <input type="text" id="blessingInput" placeholder="最多10个字..." maxlength="10">
+                <!-- ② 双列预览：女书列 + 汉字列 -->
+                <div class="blessing-bilingual" id="blessingBilingual">
+                    <div class="blessing-nushu-col" id="blessingNushuPreview"></div>
+                    <div class="blessing-zh-col" id="blessingZhPreview"></div>
+                </div>
+                <!-- 原 blessing-preview 保留 id 供兼容，已用 CSS 隐藏 -->
                 <div id="blessingPreview" class="blessing-preview"></div>
-                <button id="sendBlessingBtn" class="btn">寄出</button>
             </div>
+
+            <!-- ③ 寄出按钮：绝对定位 bottom:8% -->
+            <button id="sendBlessingBtn" class="btn">寄出</button>
             
             <div id="waterFlowContainer"></div>
+            <!-- ⑤ 涟漪 SVG 层 -->
+            <svg id="rippleOverlay"></svg>
         </section>
     </div>
 
-    <!-- 引入 SDK -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
