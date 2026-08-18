@@ -1,11 +1,10 @@
-// 🎨 笔刷变大，更容易填满
 const BRUSH_SIZE = 60;     
 const BRUSH_SPACING = 12;  
 
 document.addEventListener("DOMContentLoaded", () => {
     
     // ==========================================
-    // ☁️ Supabase 数据库初始化 
+    // ☁️ Supabase 数据库初始化 (请重新填入你的 Keys!)
     // ==========================================
     const SUPABASE_URL = 'https://cttkxodilojsmjvqdeia.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_HEcjCbGyFVUqFZ1r_321ng_Zf3gIlya';
@@ -13,17 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let _supabase = null;
     try {
         _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log("Supabase 连接成功！");
-    } catch (err) {
-        console.log("Supabase 连接异常", err);
-    }
+    } catch (err) { console.log(err); }
 
-    let cloudTexts = ["愿女性自由独立", "岁岁常欢愉", "万事胜意", "山高水长", "长乐", "平安喜乐"];
+    let cloudTexts = ["愿姐妹自由独立", "岁岁常欢愉", "万事胜意", "山高水长", "长乐未央", "平安喜乐"];
 
     const canvasContainer = document.querySelector('.canvas-container');
     const canvas = document.getElementById('drawingBoard');
     const ctx = canvas.getContext('2d');
     const templateImage = document.getElementById('templateImage');
+    
+    // === 新增：分步描红状态 ===
+    let tracingStep = 1; // 1代表描“秦”，2代表描“彻”
     
     let isFinished = false; 
     let isDrawing = false;
@@ -33,13 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const brushImg = new Image();
     brushImg.src = 'assets/brush.png';
 
-    for(let i = 1; i <= 5; i++) {
-        let img = new Image(); img.src = `assets/${i}.png`;
-    }
+    for(let i = 1; i <= 5; i++) { let img = new Image(); img.src = `assets/${i}.png`; }
 
     function switchPhase(fromId, toId, callback) {
-        const fromEl = document.getElementById(fromId);
-        const toEl = document.getElementById(toId);
+        const fromEl = document.getElementById(fromId); const toEl = document.getElementById(toId);
         fromEl.style.opacity = '0';
         setTimeout(() => {
             fromEl.classList.remove('active'); fromEl.classList.add('hidden');
@@ -54,8 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         for (let char of text) {
             if (nushuDict[char]) html += `<span>${nushuDict[char]}</span>`;
             else html += `<span class="fang-nushu">${char}</span>`;
-        }
-        return html;
+        } return html;
     }
     function buildChineseHtml(text) {
         let html = '';
@@ -106,20 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (canvasContainer.offsetWidth > 0) { canvas.width = canvasContainer.getBoundingClientRect().width; canvas.height = canvasContainer.getBoundingClientRect().height; }
     });
 
-    // === 胖手指优化：触摸事件视觉偏移 ===
     function getPos(e) { 
         const r = canvas.getBoundingClientRect(); 
-        const isTouch = !!e.touches; // 判断是不是手机触摸
+        const isTouch = !!e.touches; 
         const clientX = isTouch ? e.touches[0].clientX : (e.clientX || e.pageX);
         const clientY = isTouch ? e.touches[0].clientY : (e.clientY || e.pageY);
-        
-        // 关键：如果是触摸，就把笔迹往手指上方抬高 35 像素，避免被手指完全挡住！
         const offsetY = isTouch ? 35 : 0;
-
-        return {
-            x: clientX - r.left, 
-            y: clientY - r.top - offsetY
-        }; 
+        return { x: clientX - r.left, y: clientY - r.top - offsetY }; 
     }
 
     canvas.addEventListener('mousedown', e => { if(!isFinished) { isDrawing = true; lastPoint = getPos(e); }});
@@ -145,46 +133,73 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener('touchend', () => isDrawing = false);
 
     document.getElementById('clearBtn').addEventListener('click', () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); isFinished = false; templateImage.style.opacity = '0.4'; document.getElementById('checkBtn').classList.remove('hidden'); 
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        isFinished = false; 
+        templateImage.style.opacity = '0.4'; 
     });
 
     let particles = [];
     const COLORS = ['233,224,206', '135,177,166', '234,211,128', '211,135,96', '75,69,66'];
-    function startParticleAnimation() {
+    function startParticleAnimation(onComplete) {
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         for (let y = 0; y < canvas.height; y += 3) {
             for (let x = 0; x < canvas.width; x += 3) {
                 if (data[(y * canvas.width + x) * 4 + 3] > 50) particles.push({ x: x, y: y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 1+Math.random()*0.5, history: [], colorRGB: COLORS[Math.floor(Math.random()*COLORS.length)] });
             }
         }
-        requestAnimationFrame(renderParticles);
-    }
-    function renderParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); let alive = false;
-        particles.forEach(p => {
-            if (p.life > 0) {
-                alive = true; p.history.push({x: p.x, y: p.y});
-                if(p.history.length > 12) p.history.shift(); 
-                p.x += p.vx; p.y += p.vy; p.life -= 0.012; 
-                if (p.history.length > 1) {
-                    ctx.beginPath(); ctx.moveTo(p.history[0].x, p.history[0].y);
-                    for(let i=1; i<p.history.length; i++) ctx.lineTo(p.history[i].x, p.history[i].y);
-                    ctx.strokeStyle = `rgba(${p.colorRGB}, ${p.life})`; ctx.lineWidth = 1.5 * p.life; ctx.lineCap = 'round'; ctx.stroke();
+        
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); let alive = false;
+            particles.forEach(p => {
+                if (p.life > 0) {
+                    alive = true; p.history.push({x: p.x, y: p.y});
+                    if(p.history.length > 12) p.history.shift(); 
+                    p.x += p.vx; p.y += p.vy; p.life -= 0.015; // 加快一点消散
+                    if (p.history.length > 1) {
+                        ctx.beginPath(); ctx.moveTo(p.history[0].x, p.history[0].y);
+                        for(let i=1; i<p.history.length; i++) ctx.lineTo(p.history[i].x, p.history[i].y);
+                        ctx.strokeStyle = `rgba(${p.colorRGB}, ${p.life})`; ctx.lineWidth = 1.5 * p.life; ctx.lineCap = 'round'; ctx.stroke();
+                    }
                 }
-            }
-        });
-        if (alive) requestAnimationFrame(renderParticles); else switchPhase('phase1', 'phase2');
+            });
+            if (alive) requestAnimationFrame(renderParticles); 
+            else if(onComplete) onComplete();
+        }
+        renderParticles();
     }
 
+    // === 核心修改：两步描红逻辑 ===
     document.getElementById('checkBtn').addEventListener('click', () => {
         let count = 0; const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         for (let i = 3; i < data.length; i += 4) { if (data[i] > 20) count++; }
         
-        // 降低通关门槛：原本需要 8000 像素，现在只要 5000 就能过，降低用户挫败感
-        if (count > 5000) {
-            document.getElementById('checkBtn').classList.add('hidden'); document.getElementById('clearBtn').classList.add('hidden'); 
-            isFinished = true; templateImage.style.opacity = '0'; startParticleAnimation(); 
-        } else alert("还不够完整哦，请再描绘一下他的名字吧~");
+        if (count > 4000) { // 稍微降低一点阈值防卡关
+            isFinished = true; 
+            document.getElementById('tracingBtnGroup').classList.add('hidden'); // 隐藏按钮组
+            templateImage.style.opacity = '0'; // 隐藏底图
+            
+            if (tracingStep === 1) {
+                // 第一步完成：播放特效，然后切换到第二步
+                startParticleAnimation(() => {
+                    // 特效播完后
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 确保清空
+                    templateImage.src = 'assets/template2.png'; // 切换成“彻”的底图
+                    setTimeout(() => {
+                        templateImage.style.opacity = '0.4'; 
+                        document.getElementById('tracingBtnGroup').classList.remove('hidden'); 
+                        isFinished = false; // 解锁画板
+                        tracingStep = 2; // 进入第二步
+                    }, 300);
+                });
+            } else {
+                // 第二步完成：播放特效，进入下一页
+                startParticleAnimation(() => {
+                    switchPhase('phase1', 'phase2');
+                });
+            }
+        } else {
+            alert("还不够完整哦，请再描绘一下他的名字吧~");
+        }
     });
 
     const nameInput = document.getElementById('nameInput');
@@ -261,13 +276,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 .select('content')
                 .order('created_at', { ascending: false })
                 .limit(50);
-            
-            if (data && data.length > 0) {
-                cloudTexts = data.map(item => item.content);
-            }
-        } catch(err) {
-            console.log("拉取留言失败", err);
-        }
+            if (data && data.length > 0) cloudTexts = data.map(item => item.content);
+        } catch(err) { console.log(err); }
     }
 
     const blessInput = document.getElementById('blessingInput');
@@ -287,8 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if(_supabase) {
             try {
                 await _supabase.from('blessings').insert([{ content: text }]);
-                console.log("云端保存成功！");
-            } catch(e) { console.log("保存失败", e); }
+            } catch(e) { console.log(e); }
         }
 
         setInterval(() => {
