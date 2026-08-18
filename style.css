@@ -1,33 +1,43 @@
 /* =========================================
-   🛠️ 【在这里调整高度和排版参数】 🛠️
+   🛠️ 【高度和排版参数】 🛠️
 ========================================= */
 :root {
-    /* 结缘页（海报页）双人名字距离顶部的距离：越小越高 */
     --poster-name-top: 100px; 
-    
-    /* 结缘页（海报页）底部按钮距离底部的距离：越小越靠下 */
     --poster-btn-bottom: 4%;  
 }
 
-/* ========================================= */
-
+/* =========================================
+   1. 引入所有字体
+========================================= */
 @font-face { font-family: 'MyNushu'; src: url('assets/nvshu.woff2') format('woff2'); font-weight: normal; font-style: normal; }
 @font-face { font-family: 'FangNushu'; src: url('assets/fangnvshu.ttf') format('truetype'); font-weight: normal; font-style: normal; }
 
+/* 📱 新增：引入你自己的中文字体，解决安卓没有宋体的问题 */
+@font-face { font-family: 'MySongti'; src: url('assets/songti.woff2') format('truetype'); font-weight: normal; font-style: normal; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* 📱 修复手机端衬线字体：加入了苹果(Songti SC)和安卓常用衬线兜底 */
 body { 
-    font-family: "Songti SC", "STSong", "STZhongsong", "SimSun", "PMingLiU", serif; 
+    /* 将自定义宋体放在最前面 */
+    font-family: 'MySongti', "Songti SC", "STSong", "STZhongsong", "SimSun", "PMingLiU", serif; 
     color: #425066; overflow: hidden; 
     background-color: #ece5df; 
     background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.06"/></svg>'); 
     display: flex; justify-content: center; align-items: center; 
 }
 
-#app { width: 100vw; height: 100vh; height: 100dvh; max-width: 450px; position: relative; background-color: #ece5df; overflow: hidden; }
-@media (min-width: 500px) { #app { box-shadow: 0 0 30px rgba(0,0,0,0.15); } }
+/* 📱 核心修复：强制锁定 1080:2400 比例，高度优先占满 */
+#app { 
+    height: 100dvh; 
+    aspect-ratio: 1080 / 2400; /* 锁定为你背景图的真实比例 */
+    max-width: 100vw; /* 防止在极矮的屏幕上宽度溢出 */
+    position: relative; 
+    background-color: #ece5df; 
+    overflow: hidden; 
+    box-shadow: 0 0 30px rgba(0,0,0,0.15); /* 统一加上阴影，区分边界 */
+}
 
+/* === 页面切换与层级 === */
 .screen { width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease-in-out; }
 .screen.active { opacity: 1; z-index: 10; } 
 .screen.hidden { display: none !important; opacity: 0; pointer-events: none; }
@@ -35,6 +45,7 @@ body {
 .btn { background-color: transparent; background-image: url('assets/button-bg.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #ece5df; text-shadow: 0 2px 4px rgba(0,0,0,0.4); border: none; width: 120px; height: 85px; font-size: 16px; font-weight: bold; letter-spacing: 2px; margin-top: 20px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
 .btn:hover { transform: scale(1.05); }
 
+/* === 开屏与排版 === */
 .intro-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
 .fade-bg { transition: opacity 2s ease-in-out; }
 .floating-bottom-btn { position: absolute; bottom: 8%; z-index: 999; animation: pulse 2s infinite; } 
@@ -46,17 +57,19 @@ body {
 .char-group .zh { font-size: 14px; color: #425066; } 
 .char-group.punct { justify-content: flex-end; } 
 
-.fang-nushu, div.fang-nushu, span.fang-nushu, .nushu-text span.fang-nushu { font-family: 'FangNushu', 'MyNushu', "Songti SC", "SimSun", serif !important; font-size: 30px !important; transform: translateY(2px); }
+.fang-nushu, div.fang-nushu, span.fang-nushu, .nushu-text span.fang-nushu { font-family: 'FangNushu', 'MyNushu', 'MySongti', "Songti SC", serif !important; font-size: 30px !important; transform: translateY(2px); }
 
+/* === 描红区 === */
 .canvas-container { position: absolute; top: 18%; height: 65%; width: 100%; overflow: hidden; }
 #templateImage, #drawingBoard { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 #templateImage { opacity: 0.4; transition: opacity 1.5s ease; }
 #drawingBoard { cursor: crosshair; z-index: 5; }
 .floating-btn-group.horizontal { position: absolute; bottom: 3%; z-index: 20; display: flex; flex-direction: row; gap: 20px; align-items: center; }
 
-/* 结缘页按钮位置应用参数 */
+/* 结缘页按钮 */
 .poster-btns { bottom: var(--poster-btn-bottom) !important; }
 
+/* === 输入与转换区 === */
 .input-container { text-align: center; width: 90%; display: flex; flex-direction: column; align-items: center; z-index: 10; transition: opacity 1s; }
 .input-container p { margin-bottom: 15px; font-size: 18px; letter-spacing: 2px; }
 #nameInput, #blessingInput { width: 80%; padding: 15px; border: 1px solid #425066; background: transparent; color: #425066; font-size: 18px; text-align: center; letter-spacing: 4px; outline: none; }
@@ -68,15 +81,15 @@ body {
 .replace-btn { background: #425066; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
 .keep-btn { background: transparent; border: 1px solid #9d2933; color: #9d2933; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 5px;}
 
+/* === 海报双列排版 === */
 .poster-main-design { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity 0.5s; }
-/* 结缘页文字位置应用参数 */
 .poster-content.double-column { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: row-reverse; justify-content: space-around; align-items: flex-start; padding: 0 40px; padding-top: var(--poster-name-top); }
 .column { display: flex; gap: 15px; pointer-events: none; }
 .nushu-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; line-height: 1.8; letter-spacing: 4px; color: #9d2933; font-family: 'MyNushu', serif; } 
 .chinese-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 22px; line-height: 1.8; letter-spacing: 4px; color: #425066; border-right: 1px solid #425066; padding-right: 15px; }
 .nushu-text span { display: inline-block; margin-bottom: 8px; }
 
-/* 📱 寄语页排版优化：将其固定在靠上方，防止被键盘顶起时重叠 */
+/* === 寄语长河 === */
 .blessing-layout { position: absolute; top: 8%; justify-content: flex-start; }
 .blessing-preview { margin-top: 15px; writing-mode: vertical-rl; text-orientation: upright; display: flex; align-items: center; justify-content: center; height: 180px; color: #9d2933; font-family: 'MyNushu', serif; font-size: 26px; letter-spacing: 6px; }
 .blessing-preview span { display: inline-block; margin-bottom: 6px; }
@@ -84,7 +97,7 @@ body {
 #waterFlowContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
 .flowing-item { position: absolute; writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; letter-spacing: 8px; font-family: 'MyNushu', serif; cursor: pointer; pointer-events: auto; transition: opacity 0.3s, color 0.3s; }
 .flowing-item span { display: inline-block; margin-bottom: 6px; }
-.flowing-zh { font-family: "Songti SC", "STZhongsong", "SimSun", serif !important; color: #425066 !important; font-weight: normal; }
+.flowing-zh { font-family: 'MySongti', "Songti SC", "STZhongsong", serif !important; color: #425066 !important; font-weight: normal; }
 
 .flow-other { color: #99b3a8; animation: flowUp 25s linear forwards; }
 .flow-user { color: #9d2933; font-weight: bold; animation: flowMergeUp 22s ease-in-out forwards; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.5); }

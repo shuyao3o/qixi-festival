@@ -1,4 +1,4 @@
-const BRUSH_SIZE = 60;     
+const BRUSH_SIZE = 30;     
 const BRUSH_SPACING = 12;  
 
 document.addEventListener("DOMContentLoaded", () => {
