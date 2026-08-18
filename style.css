@@ -40,7 +40,7 @@ body {
 .screen.active { opacity: 1; z-index: 10; } 
 .screen.hidden { display: none !important; opacity: 0; pointer-events: none; }
 
-/* ① 按钮也明确指定宋体 */
+/* ① 按钮指定宋体 */
 .btn { background-color: transparent; background-image: url('assets/button-bg.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #ece5df; text-shadow: 0 2px 4px rgba(0,0,0,0.4); border: none; width: 120px; height: 85px; font-size: 16px; font-weight: bold; letter-spacing: 2px; margin-top: 20px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); font-family: 'MySongti', "Songti SC", "STSong", serif; }
 .btn:hover { transform: scale(1.05); }
 
@@ -53,7 +53,6 @@ body {
 .floating-title { position: absolute; top: 3%; z-index: 20; width: 95%; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: none; }
 .char-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
 .char-group .ns { font-family: 'MyNushu', serif; font-size: 24px; color: #9d2933; height: 35px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; } 
-/* ① 描红提示文字强制宋体 */
 .char-group .zh { font-size: 14px; color: #425066; font-family: 'MySongti', "Songti SC", "STSong", serif; } 
 .char-group.punct { justify-content: flex-end; } 
 
@@ -69,10 +68,12 @@ body {
 /* 结缘页按钮 */
 .poster-btns { bottom: var(--poster-btn-bottom) !important; }
 
-/* === 输入与转换区（① 宋体） === */
+/* === 输入与转换区 ① 宋体 === */
 .input-container { text-align: center; width: 90%; display: flex; flex-direction: column; align-items: center; z-index: 10; transition: opacity 1s; font-family: 'MySongti', "Songti SC", "STSong", serif; }
 .input-container p { margin-bottom: 15px; font-size: 18px; letter-spacing: 2px; font-family: 'MySongti', "Songti SC", "STSong", serif; }
+/* ① placeholder 字间距收窄，防止溢出 */
 #nameInput, #blessingInput { width: 80%; padding: 15px; border: 1px solid #425066; background: transparent; color: #425066; font-size: 18px; text-align: center; letter-spacing: 4px; outline: none; font-family: 'MySongti', "Songti SC", "STSong", serif; }
+#nameInput::placeholder { letter-spacing: 1px; font-size: 15px; }
 .mapping-area { margin-top: 15px; width: 100%; }
 .map-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.4); padding: 10px; margin-bottom: 10px; border-radius: 8px; }
 .map-char { font-size: 20px; font-weight: bold; width: 30px; font-family: 'MySongti', "Songti SC", "STSong", serif; }
@@ -81,33 +82,77 @@ body {
 .replace-btn { background: #425066; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: 'MySongti', "Songti SC", "STSong", serif; }
 .keep-btn { background: transparent; border: 1px solid #9d2933; color: #9d2933; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 5px; font-family: 'MySongti', "Songti SC", "STSong", serif; }
 
-/* === 海报双列排版（① 宋体） === */
+/* === 海报双列排版 ① 宋体 === */
 .poster-main-design { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity 0.5s; }
-.poster-content.double-column { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: row-reverse; justify-content: space-around; align-items: flex-start; padding: 0 40px; padding-top: var(--poster-name-top); }
+/* ③ 双人姓名再往上：padding-top 从 var 缩减 */
+.poster-content.double-column { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: row-reverse; justify-content: space-around; align-items: flex-start; padding: 0 40px; padding-top: calc(var(--poster-name-top) - 40px); }
 .column { display: flex; gap: 15px; pointer-events: none; }
 .nushu-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; line-height: 1.8; letter-spacing: 4px; color: #9d2933; font-family: 'MyNushu', serif; } 
 .chinese-text { writing-mode: vertical-rl; text-orientation: upright; font-size: 22px; line-height: 1.8; letter-spacing: 4px; color: #425066; border-right: 1px solid #425066; padding-right: 15px; font-family: 'MySongti', "Songti SC", "STSong", serif; }
 .nushu-text span { display: inline-block; margin-bottom: 8px; }
 
-/* ===== ② 寄语页布局 ===== */
-.blessing-layout { 
-    position: absolute; 
-    top: 8%; 
-    justify-content: flex-start;
-    width: 100%;
-    align-items: center;
+/* ===== ④ 寄语页：仿"以指画线"竖排标题，无文本框 ===== */
+#phase4 { justify-content: center; }
+
+/* 标题竖排双列区（女书+汉字，仿描红页顶部提示） */
+.blessing-title-area {
+    position: absolute;
+    top: 3%;
+    z-index: 20;
+    width: 95%;
+    display: flex;
+    flex-direction: row-reverse; /* 右侧女书，左侧汉字 */
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+}
+/* 标题——女书竖列 */
+.blessing-title-nushu {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-family: 'MyNushu', serif;
+    font-size: 26px;
+    line-height: 1.8;
+    letter-spacing: 6px;
+    color: #9d2933;
+}
+.blessing-title-nushu span { display: inline-block; margin-bottom: 6px; }
+/* 标题——汉字竖列 */
+.blessing-title-zh {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-family: 'MySongti', "Songti SC", "STSong", serif;
+    font-size: 22px;
+    line-height: 1.8;
+    letter-spacing: 4px;
+    color: #425066;
+    border-right: 1px solid rgba(66,80,102,0.35);
+    padding-right: 10px;
 }
 
-/* ② 汉字+女书双列竖排预览 */
+/* 输入框区域（保留用于输入，但去掉 <p> 标题） */
+.blessing-input-area {
+    position: absolute;
+    top: 32%;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    transition: opacity 1s;
+}
+#blessingInput { width: 80%; padding: 15px; border: 1px solid #425066; background: transparent; color: #425066; font-size: 18px; text-align: center; letter-spacing: 4px; outline: none; font-family: 'MySongti', "Songti SC", "STSong", serif; }
+
+/* 寄语预览双列 */
 .blessing-bilingual {
     display: flex;
     flex-direction: row-reverse;
     justify-content: center;
     align-items: flex-start;
     gap: 12px;
-    margin: 12px 0 8px;
+    margin: 14px 0 0;
     pointer-events: none;
-    min-height: 200px;
+    min-height: 180px;
 }
 .blessing-nushu-col {
     writing-mode: vertical-rl;
@@ -117,9 +162,7 @@ body {
     line-height: 1.8;
     letter-spacing: 6px;
     color: #9d2933;
-    min-height: 200px;
-    display: flex;
-    align-items: flex-start;
+    min-height: 180px;
 }
 .blessing-nushu-col span { display: inline-block; margin-bottom: 6px; }
 .blessing-zh-col {
@@ -130,15 +173,13 @@ body {
     line-height: 1.8;
     letter-spacing: 4px;
     color: #425066;
-    min-height: 200px;
+    min-height: 180px;
     border-right: 1px solid rgba(66,80,102,0.3);
     padding-right: 10px;
 }
-
-/* 原 blessing-preview 隐藏，保留 id 兼容性 */
 .blessing-preview { display: none; }
 
-/* ③ 寄出按钮：和开屏按钮一致，bottom:8% 绝对定位 */
+/* ④ 寄出按钮：绝对定位 bottom:8%，居中，与开屏一致 */
 #sendBlessingBtn {
     position: absolute;
     bottom: 8%;
@@ -149,65 +190,25 @@ body {
     z-index: 20;
 }
 
-/* ===== ④⑤ 女书河流 ===== */
+/* ===== ⑤ 女书河流 ===== */
 #waterFlowContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
 .flowing-item { position: absolute; writing-mode: vertical-rl; text-orientation: upright; font-size: 26px; letter-spacing: 8px; font-family: 'MyNushu', serif; cursor: pointer; pointer-events: auto; transition: opacity 0.3s, color 0.3s; }
 .flowing-item span { display: inline-block; margin-bottom: 6px; }
 .flowing-zh { font-family: 'MySongti', "Songti SC", "STZhongsong", serif !important; color: #425066 !important; font-weight: normal; }
 
 .flow-other { color: #99b3a8; animation: flowUp 25s linear forwards; }
+/* ⑤ 恢复原版用户汇入动画 */
+.flow-user { color: #9d2933; font-weight: bold; animation: flowMergeUp 22s ease-in-out forwards; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
 
-/* ⑤ 用户寄语三阶段动画类 */
-.flow-user { color: #9d2933; font-weight: bold; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-.flow-user-drop  { animation: userDrop  1.2s ease-out  forwards; }
-.flow-user-spread{ animation: userSpread 1.0s ease-in-out forwards; }
-.flow-user-merge { animation: userMergeUp 18s ease-in-out forwards; }
-
-@keyframes flowUp { 
-    0%   { transform: translateY(110vh); opacity: 0; } 
-    10%  { opacity: 0.7; } 
-    80%  { opacity: 0.7; } 
-    100% { transform: translateY(-20%); opacity: 0; } 
+@keyframes flowUp {
+    0%   { transform: translateY(110vh); opacity: 0; }
+    10%  { opacity: 0.7; }
+    80%  { opacity: 0.7; }
+    100% { transform: translateY(-20%); opacity: 0; }
 }
-
-/* 水滴从底部浮现，模糊→清晰 */
-@keyframes userDrop {
-    0%   { top: 88%; left: 50%; transform: translate(-50%, 0) scale(1.8); opacity: 0; filter: blur(6px); }
-    50%  { top: 72%; left: 50%; transform: translate(-50%, 0) scale(1.3); opacity: 1; filter: blur(1px); }
-    100% { top: 64%; left: 50%; transform: translate(-50%, 0) scale(1.1); opacity: 1; filter: blur(0); }
-}
-
-/* 原地扩散：模拟水花冲击 */
-@keyframes userSpread {
-    0%   { transform: translate(-50%, 0) scale(1.1); opacity: 1; }
-    35%  { transform: translate(-50%, 0) scale(1.5); opacity: 0.85; }
-    65%  { transform: translate(-50%, 0) scale(0.95); opacity: 1; }
-    100% { transform: translate(-50%, 0) scale(1.0); opacity: 1; }
-}
-
-/* 汇入：从中心随机偏移并向上流走 */
-@keyframes userMergeUp { 
-    0%   { top: 64%; opacity: 1; } 
-    8%   { top: 56%; opacity: 1; } 
-    100% { top: -20%; opacity: 0; } 
-}
-
-/* ⑤ SVG 涟漪覆盖层 */
-#rippleOverlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 15;
-    overflow: visible;
-}
-.ripple-circle {
-    fill: none;
-    stroke: rgba(157, 41, 51, 0.45);
-    stroke-width: 2;
-    animation: rippleExpand 1.6s ease-out forwards;
-}
-@keyframes rippleExpand {
-    0%   { r: 4;   opacity: 0.9; stroke-width: 3; }
-    100% { r: 130; opacity: 0;   stroke-width: 0.5; }
+@keyframes flowMergeUp {
+    0%   { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 0; }
+    10%  { top: 70%; left: 50%; transform: translate(-50%, 0) scale(1.5); opacity: 1; }
+    20%  { top: 60%; left: 50%; transform: translate(-50%, 0) scale(1);   opacity: 1; }
+    100% { top: -20%; left: 50%; transform: translate(-50%, 0) scale(1);  opacity: 0; }
 }
